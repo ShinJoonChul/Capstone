@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>건물정보 선택</title>
+    <link rel="stylesheet" href="building.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="#">로그아웃</a>
+            <a href="#">마이페이지</a>
+        </nav>
+    </header>
+    <main>
+        <h1>건물정보 선택</h1>
+        <div class="selection-group">
+            <div class="selection">
+                <label for="area">면적</label>
+                <select id="area">
+                    <option>선택하세요</option>
+                    <option>1,000㎡ 미만</option>
+                    <option>1,000㎡ 이상</option>
+                    <option>5,000㎡ 이상</option>
+                </select>
+            </div>
+            <div class="selection">
+                <label for="floors">층수</label>
+                <select id="floors">
+                    <option>선택하세요</option>
+                    <option>1층</option>
+                    <option>2층</option>
+                    <option>3층</option>
+                    <option>4층</option>
+                    <option>5층 이상</option>
+                </select>
+            </div>
+            <div class="selection">
+                <label for="usage">용도</label>
+                <select id="usage">
+                    <option>선택하세요</option>
+                    <option>종합병원/수술·응급시설 있는 병원</option>
+                    <option>긴급대피수용시설</option>
+                    <option>위협물 저장 및 처리시설</option>
+                    <option>청와대/발전소/방송국 등 국가·지자체 주요시설</option>
+                    <option>공연장/집회장/관람장/전시장/운동시설/판매시설</option>
+                    <option>아노사건(아동·노인·사회복지시설 등)</option>
+                    <option>숙박시설(오피스텔·기숙사·아파트 등)</option>
+                    <option>학교</option>
+                    <option>사무실</option>
+                    <option>농업시설</option>
+                    <option>가설구조물</option>
+                    <option>기타</option>
+                </select>
+            </div>
+        </div>
+        <div class="button-group">
+            <button class="result-button">뒤로가기</button>
+            <button class="result-button">결과 보기</button>
+        </div>
+    </main>
+    <script>
+        // 버튼 그룹 내의 버튼들에 이벤트 리스너 추가
+        const buttons = document.querySelectorAll('.result-button');
+        
+        // 뒤로가기 버튼 (첫 번째 버튼)
+        buttons[0].addEventListener('click', function() {
+            // 위치선택 페이지로 이동
+            window.location.href = 'location.html';
+        });
+
+        // 결과보기 버튼 (두 번째 버튼)
+        buttons[1].addEventListener('click', function() {
+            // 선택값 저장
+            const area = document.getElementById('area').value;
+            const floors = document.getElementById('floors').value;
+            const usage = document.getElementById('usage').value;
+            // 객체로 저장
+            const buildingInfo = { area, floors, usage };
+            localStorage.setItem('buildingInfo', JSON.stringify(buildingInfo));
+            // 각각 따로 저장 (추가)
+            localStorage.setItem('buildingArea', area);
+            localStorage.setItem('buildingFloors', floors);
+            localStorage.setItem('buildingUsage', usage);
+            // 결과화면 페이지로 이동
+            window.location.href = 'result.html';
+        });
+    </script>
+</body>
+</html>
+ 

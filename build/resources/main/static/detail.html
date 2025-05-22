@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>더보기 조회 페이지</title>
+    <link rel="stylesheet" href="detail.css">
+    <style>
+        .rating-box .star {
+            cursor: pointer;
+            font-size: 2rem;
+            transition: color 0.2s;
+        }
+        .comment-submit-btn {
+            cursor: pointer;
+        }
+        .comment-star {
+            cursor: pointer;
+            font-size: 1.5rem;
+            transition: color 0.2s;
+        }
+        .main-address {
+            font-size: 1.1rem;
+            color: #333;
+            margin: 10px 0;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+        }
+        .main-address::before {
+            content: '📍';
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <button class="back-list-btn">목록으로 돌아가기</button>
+    <div style="height: 40px;"></div>
+    <main class="main-flex">
+        <div class="main-left">
+            <div class="main-image-box">
+                <div id="detail-map" style="width:600px; height:400px; border-radius:8px; margin-bottom:10px;"></div>
+                <div class="main-address"></div>
+                <div class="main-building-info">
+                    <span>면적: <b>2,500 sq ft</b></span><br>
+                    <span>층수: <b>3</b></span><br>
+                    <span>용도: <b>Commercial</b></span>
+                </div>
+            </div>
+        </div>
+        <div class="main-right">
+            <div class="main-eq-info">
+                <div class="main-eq-title">지진 정보</div>
+                <div class="main-eq-box">
+                    <div class="main-eq-label">예측 지진 강도</div>
+                    <div class="main-eq-value">7.2</div>
+                </div>
+                <div class="main-eq-box">
+                    <div class="main-eq-label">내진등급</div>
+                    <div class="main-eq-value">Special</div>
+                </div>
+                <div class="main-eq-box">
+                    <div class="main-eq-label">주된 내진 설계 방식</div>
+                    <div class="main-eq-value">Base Isolation</div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <section class="comment-section">
+        <div class="comment-title">Comment</div>
+        <div class="comment-input-box">
+            <div class="comment-rating-box" style="display:inline-block; vertical-align:middle;">
+                <span class="comment-star" data-value="1">&#9733;</span>
+                <span class="comment-star" data-value="2">&#9733;</span>
+                <span class="comment-star" data-value="3">&#9733;</span>
+                <span class="comment-star" data-value="4">&#9733;</span>
+                <span class="comment-star" data-value="5">&#9733;</span>
+            </div>
+            <textarea id="comment-input" placeholder="댓글을 입력하세요"></textarea>
+            <button class="comment-submit-btn" id="comment-submit-btn" disabled>댓글 작성</button>
+        </div>
+        <div id="comment-rating-avg" style="margin:8px 0; font-weight:bold;"></div>
+        <div class="comment-list-box" id="comment-list-box">
+            <!-- JS로 댓글 목록 렌더링 -->
+        </div>
+    </section>
+    <script>
+        // 목록으로 돌아가기 버튼에 클릭 이벤트 추가
+        document.querySelector('.back-list-btn').addEventListener('click', function() {
+            // 메인화면으로 이동
+            window.location.href = 'main.html';
+        });
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAIINgY-EVyXtgONcH9Gmsmbb7x8xvCddI&callback=initDetailMap"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sharedResults = JSON.parse(localStorage.getItem('sharedResults') || '[]');
+        const idx = localStorage.getItem('selectedResultIdx');
+        
+        // 공유된 결과만 필터링
+        const publicResults = sharedResults.filter(result => result.isShared);
+        
+        if (!publicResults[idx]) {
+            console.error('선택된 결과를 찾을 수 없습니다.');
+            return;
+        }
+        
+        const result = publicResults[idx];
+
+        // 주소 표시
+        const address = result.address || '-';
+        document.querySelector('.main-address').textContent = address;
+
+        // 건물 정보 표시
+        document.querySelector('.main-building-info').innerHTML = `
+            <span>면적: <b>${result.area || '-'}</b></span><br>
+            <span>층수: <b>${result.floors || '-'}</b></span><br>
+            <span>용도: <b>${result.usage || '-'}</b></span>
+        `;
+
+        // 지진 정보 표시
+        const eqBoxes = document.querySelectorAll('.main-eq-box');
+        if (eqBoxes.length >= 3) {
+            eqBoxes[0].querySelector('.main-eq-value').innerText = result.eqStrength || '-';
+            eqBoxes[1].querySelector('.main-eq-value').innerText = result.eqGrade || '-';
+            eqBoxes[2].querySelector('.main-eq-value').innerText = result.eqType || '-';
+        }
+
+        // 지도 표시
+        window.initDetailMap = function() {
+            if (!address || address === '-') {
+                console.error('주소 정보가 없습니다.');
+                return;
+            }
+
+            const geocoder = new google.maps.Geocoder();
+            const map = new google.maps.Map(document.getElementById('detail-map'), {
+                zoom: 15
+            });
+            const marker = new google.maps.Marker({ map: map });
+            const infoWindow = new google.maps.InfoWindow();
+
+            geocoder.geocode({address: address}, function(results, status) {
+                if (status === 'OK') {
+                    const location = results[0].geometry.location;
+                    map.setCenter(location);
+                    marker.setPosition(location);
+                    infoWindow.setContent('<div style="padding:5px;font-size:12px;">' + address + '</div>');
+                    infoWindow.open(map, marker);
+                } else {
+                    console.error('주소를 찾을 수 없습니다:', status);
+                }
+            });
+        }
+
+        // 댓글 기능
+        const commentInput = document.getElementById('comment-input');
+        const commentSubmitBtn = document.getElementById('comment-submit-btn');
+        const commentListBox = document.getElementById('comment-list-box');
+        result.commentsArr = result.commentsArr || [];
+        
+        // 댓글 별점 기능
+        let commentRating = 0;
+        document.querySelectorAll('.comment-star').forEach(star => {
+            star.addEventListener('mouseenter', function() {
+                highlightCommentStars(Number(this.dataset.value));
+            });
+            star.addEventListener('mouseleave', function() {
+                highlightCommentStars(commentRating);
+            });
+            star.addEventListener('click', function() {
+                commentRating = Number(this.dataset.value);
+                highlightCommentStars(commentRating);
+                updateSubmitBtnState();
+            });
+        });
+
+        function highlightCommentStars(rating) {
+            document.querySelectorAll('.comment-star').forEach(star => {
+                star.style.color = (Number(star.dataset.value) <= rating) ? '#FFD700' : '#ccc';
+            });
+        }
+
+        function updateSubmitBtnState() {
+            commentSubmitBtn.disabled = !(commentInput.value.trim() && commentRating > 0);
+        }
+
+        commentInput.addEventListener('input', updateSubmitBtnState);
+
+        commentSubmitBtn.addEventListener('click', function() {
+            const text = commentInput.value.trim();
+            if (!text || commentRating === 0) return;
+
+            const loginUser = localStorage.getItem('loginUser');
+            if (!loginUser) {
+                alert('댓글을 작성하려면 로그인이 필요합니다.');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const comment = {
+                text,
+                rating: commentRating,
+                author: loginUser,
+                date: new Date().toLocaleString()
+            };
+
+            result.commentsArr.push(comment);
+            sharedResults[idx] = result;
+            localStorage.setItem('sharedResults', JSON.stringify(sharedResults));
+            
+            commentInput.value = '';
+            commentRating = 0;
+            highlightCommentStars(0);
+            commentSubmitBtn.disabled = true;
+            
+            renderComments();
+            renderCommentAvg();
+        });
+
+        function renderComments() {
+            commentListBox.innerHTML = '';
+            result.commentsArr.forEach(c => {
+                const div = document.createElement('div');
+                div.className = 'comment-list-header';
+                div.innerHTML = `
+                    <span>${c.text}</span>
+                    <span class="comment-author">${c.author}</span>
+                    <span class="comment-date">${c.date}</span>
+                    <span class="comment-stars">${renderStars(c.rating)}</span>
+                `;
+                commentListBox.appendChild(div);
+            });
+        }
+
+        function renderCommentAvg() {
+            const avgDiv = document.getElementById('comment-rating-avg');
+            if (!result.commentsArr.length) {
+                avgDiv.innerText = '';
+                return;
+            }
+            const avg = (result.commentsArr.reduce((sum, c) => sum + (c.rating || 0), 0) / result.commentsArr.length).toFixed(1);
+            avgDiv.innerText = `댓글 별점 평균: ${avg}점`;
+        }
+
+        function renderStars(rating) {
+            let html = '';
+            for (let i = 1; i <= 5; i++) {
+                html += `<span style="color:${i <= rating ? '#FFD700' : '#ccc'}; font-size:1.2rem;">&#9733;</span>`;
+            }
+            return html;
+        }
+
+        renderComments();
+        renderCommentAvg();
+    });
+    </script>
+</body>
+</html>

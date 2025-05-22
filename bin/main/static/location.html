@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>위치 선택</title>
+    <link rel="stylesheet" href="location.css">
+    <!-- 다음 주소 API 스크립트 추가 -->
+    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <style>
+        .map-placeholder { width: 100%; height: 400px; margin: 20px 0; }
+        #map { width: 100%; height: 100%; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="#">로그아웃</a>
+            <a href="#">마이페이지</a>
+        </nav>
+    </header>
+    <main>
+        <h1>위치 선택</h1>
+        <p>지진 예측을 진행할 위치를 입력하세요</p>
+        <div class="input-group">
+            <input type="text" id="main-address-input" placeholder="검색버튼을 눌러주세요" readonly>
+            <button id="search-address-btn">검색</button>
+        </div>
+        <div class="map-placeholder">
+            <div id="map"></div>
+        </div>
+        <button class="next-button">다음으로 넘어가기</button>
+    </main>
+
+    <script>
+    let map, marker, geocoder, infoWindow;
+
+    function initMap() {
+        geocoder = new google.maps.Geocoder();
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: {lat: 37.566826, lng: 126.978656}, // 서울시청
+            zoom: 13
+        });
+        marker = new google.maps.Marker({
+            map: map
+        });
+        infoWindow = new google.maps.InfoWindow();
+    }
+
+    document.getElementById('search-address-btn').onclick = function() {
+        new daum.Postcode({
+            oncomplete: function(data) {
+                const address = data.address;
+                document.getElementById('main-address-input').value = address;
+                // 선택한 주소를 localStorage에 저장
+                localStorage.setItem('selectedAddress', address);
+                
+                geocoder.geocode({address: address}, function(results, status) {
+                    if (status === 'OK') {
+                        map.setCenter(results[0].geometry.location);
+                        marker.setPosition(results[0].geometry.location);
+                        infoWindow.setContent('<div style="padding:5px;font-size:12px;">' + address + '</div>');
+                        infoWindow.open(map, marker);
+                    } else {
+                        alert('주소를 찾을 수 없습니다: ' + status);
+                    }
+                });
+            }
+        }).open();
+    };
+
+    document.querySelector('.next-button').addEventListener('click', function() {
+        const address = localStorage.getItem('selectedAddress');
+        if (!address) {
+            alert('주소를 선택해주세요.');
+            return;
+        }
+        window.location.href = 'building.html';
+    });
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAIINgY-EVyXtgONcH9Gmsmbb7x8xvCddI&callback=initMap"></script>
+</body>
+</html>
+ 

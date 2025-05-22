@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>내진 설계 시스템</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+    <header>
+        <h1>내진 설계 시스템</h1>
+        <p>안전한 건축물을 위한 맞춤형 내진 설계 추천</p>
+        <button>내진 설계 추천 시작하기</button>
+        <nav>
+            <a href="#">로그아웃</a>
+            <a href="#">마이페이지</a>
+        </nav>
+    </header>
+    <main>
+        <table>
+            <thead>
+                <tr>
+                    <th>제목</th>
+                    <th>저장 날짜</th>
+                    <th>댓글</th>
+                    <th>작업</th>
+                </tr>
+            </thead>
+            <tbody id="results-tbody">
+                <!-- JS로 동적 렌더링 -->
+            </tbody>
+        </table>
+    </main>
+    <script>
+        // 로그아웃 링크에 클릭 이벤트 추가
+        document.querySelector('nav a[href="#"]').addEventListener('click', function(event) {
+            event.preventDefault(); // 기본 링크 동작 방지
+            
+            // 로그아웃 처리 (필요한 경우 세션/쿠키 삭제 등 추가)
+            
+            // 로그인 페이지로 이동
+            window.location.href = 'index.html';
+        });
+
+        // 내진 설계 추천 시작하기 버튼에 클릭 이벤트 추가
+        document.querySelector('header button').addEventListener('click', function() {
+            // 위치선택 페이지로 이동
+            window.location.href = 'location.html';
+        });
+
+        // 마이페이지 링크에 클릭 이벤트 추가
+        document.querySelector('nav a[href="#"]:last-child').addEventListener('click', function(event) {
+            event.preventDefault(); // 기본 링크 동작 방지
+            
+            // 마이페이지로 이동
+            window.location.href = 'mypage.html';
+        });
+
+        function renderSharedResults() {
+            const sharedResults = JSON.parse(localStorage.getItem('sharedResults') || '[]');
+            const tbody = document.getElementById('results-tbody');
+            tbody.innerHTML = '';
+            
+            // 공유된 결과만 필터링
+            const publicResults = sharedResults.filter(result => result.isShared);
+            
+            if (publicResults.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 20px;">
+                            공유된 검색 내역이 없습니다.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            publicResults.forEach((result, idx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${result.title || '검색 기록'}</td>
+                    <td>${result.date}</td>
+                    <td>(${result.commentsArr ? result.commentsArr.length : 0})</td>
+                    <td><button class="more-btn" data-idx="${idx}">더보기</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        renderSharedResults();
+
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('more-btn')) {
+                const idx = e.target.dataset.idx;
+                localStorage.setItem('selectedResultIdx', idx);
+                window.location.href = 'detail.html';
+            }
+        });
+    </script>
+</body>
+</html>
+
+

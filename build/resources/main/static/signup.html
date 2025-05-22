@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>계정 생성하기</title>
+    <link rel="stylesheet" href="signup.css">
+</head>
+<body>
+    <div class="container">
+        <div class="left-panel">
+            <h2>광주대학교 내진 설계 추천 시스템에<br>오신 것을 환영합니다.</h2>
+        </div>
+        <div class="right-panel">
+            <form id="signupForm">
+                <h3>계정 생성하기</h3>
+                <label for="name">이름</label>
+                <input type="text" id="name" placeholder="이름을 입력하세요." required>
+                <label for="userid">아이디</label>
+                <input type="text" id="userid" placeholder="아이디를 입력하세요." required>
+                <label for="password">비밀번호</label>
+                <input type="password" id="password" placeholder="비밀번호를 입력하세요." required>
+                <label for="confirmPassword">비밀번호 확인</label>
+                <input type="password" id="confirmPassword" placeholder="입력한 비밀번호를 다시 한번 입력하세요." required>
+                <label for="email">이메일</label>
+                <input type="email" id="email" placeholder="이메일을 입력하세요." required>
+                <label for="company">기업명</label>
+                <input type="text" id="company" placeholder="기업명을 입력하세요." required>
+                <button type="submit">계정 생성하기</button>
+                <div id="signup-error" style="color:red; margin-top:10px;"></div>
+                <div class="signup-link">
+                    이미 계정을 가지고 계신가요? <a href="#">로그인하기</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- 환영 메시지 팝업 -->
+    <div id="welcome-popup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 10px; text-align: center; min-width: 300px;">
+            <h2 style="margin-bottom: 20px; color: #333;">회원가입을 환영합니다!</h2>
+            <p style="margin-bottom: 25px; color: #666;">회원가입이 성공적으로 완료되었습니다.</p>
+            <button id="welcome-confirm" style="padding: 10px 30px; background: #4f4fff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">확인</button>
+        </div>
+    </div>
+
+    <script>
+        // 계정생성하기 버튼 클릭 이벤트
+        document.getElementById('signupForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const name = document.getElementById('name').value.trim();
+            const id = document.getElementById('userid').value.trim();
+            const pw = document.getElementById('password').value;
+            const pw2 = document.getElementById('confirmPassword').value;
+            const email = document.getElementById('email').value.trim();
+            const company = document.getElementById('company').value.trim();
+            const errorDiv = document.getElementById('signup-error');
+            errorDiv.innerText = '';
+            // 아이디: 6글자 이상, 대소문자 구분
+            if (!/^[A-Za-z0-9]{6,}$/.test(id)) {
+                errorDiv.innerText = '아이디는 6글자 이상, 영문/숫자만 가능합니다.';
+                return;
+            }
+            // 비밀번호: 6글자 이상, 특수문자 1개 이상, 대소문자 포함, 아이디와 다름
+            if (pw.length < 6 || pw === id || !/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]+/.test(pw) || !/[A-Z]/.test(pw) || !/[a-z]/.test(pw)) {
+                errorDiv.innerText = '비밀번호는 6글자 이상, 특수문자 1개 이상, 대소문자 포함, 아이디와 달라야 합니다.';
+                return;
+            }
+            if (pw !== pw2) {
+                errorDiv.innerText = '비밀번호가 일치하지 않습니다.';
+                return;
+            }
+            // 중복 아이디 체크
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            if (users.find(u => u.id === id)) {
+                errorDiv.innerText = '이미 존재하는 아이디입니다.';
+                return;
+            }
+            users.push({id, pw, name, email, company});
+            localStorage.setItem('users', JSON.stringify(users));
+            // 환영 메시지 팝업 표시
+            document.getElementById('welcome-popup').style.display = 'block';
+        });
+
+        // 환영 메시지 팝업의 확인 버튼 클릭 이벤트
+        document.getElementById('welcome-confirm').addEventListener('click', function() {
+            // 로그인 페이지로 이동
+            window.location.href = 'index.html';
+        });
+
+        // 로그인하기 링크 클릭 이벤트
+        document.querySelector('.signup-link a').addEventListener('click', function(event) {
+            event.preventDefault(); // 기본 링크 동작 방지
+            
+            // 로그인 페이지로 이동
+            window.location.href = 'index.html';
+        });
+    </script>
+</body>
+</html>
+
+
